@@ -1,4 +1,5 @@
 import openpyxl
+from openpyxl.styles.borders import Border, Side
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
@@ -29,11 +30,30 @@ class Scrapie():
         self.db.create_sheet(self.target_system)
 
         sheet = self.db[self.target_system]
+
+        # Spacing hack
         sheet.append([
-            'Game', 'System',
-            'Publisher', 'Developer',
-            'Category',	'Year',
+            '______________________Game______________________',
+            '___System___',
+            '________Publisher________',
+            '_______Developer_______',
+            '__Category__',
+            '__Year__',
         ])
+
+        # Styling
+        for cell in sheet[1:1]:
+            cell.font = cell.font.copy(bold=True, italic=True)
+            cell.border = Border(
+                bottom=Side(style='thick'))
+
+        # Column spacing
+        for col in sheet.columns:
+            column = col[0].column
+            length = len(col[0].value)
+
+            sheet.column_dimensions[column].width = length
+
         self.sheet_current_row += 1
         self.db_save()
         return sheet
@@ -135,5 +155,5 @@ class Scrapie():
 
 
 if __name__ == "__main__":
-    scraper = Scrapie('Apple II')
+    scraper = Scrapie('Amstrad CPC')
     scraper.run()
