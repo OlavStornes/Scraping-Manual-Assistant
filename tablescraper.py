@@ -147,11 +147,21 @@ class Scrapie():
             self.aquire_entries()
             self.iterate_pages()
 
+    def cleanup(self):
+        print("Finished with sheet {}. {} rows written".format(
+            self.target_system,
+            self.sheet_current_row
+        ))
+        self.browser.stop_client()
+        self.browser.quit()
+
     def run(self):
         self.init_browser()
         self.setup_browser_table()
         self.init_db()
         self.scrape_all()
+
+        self.cleanup()
 
 
 if __name__ == "__main__":
