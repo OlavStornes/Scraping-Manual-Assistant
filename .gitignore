@@ -102,3 +102,9 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+
+# Div
+
+chromedriver.exe
+Gamelist.xlsx
