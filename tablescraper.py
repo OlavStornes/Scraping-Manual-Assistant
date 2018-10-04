@@ -1,4 +1,3 @@
-import selenium
 import openpyxl
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
@@ -9,9 +8,10 @@ from selenium.webdriver.support.ui import Select
 
 
 class Scrapie():
-    def __init__(self):
+    def __init__(self, system):
         self.page_number = 1
-        self.target_system = 'Nintendo NES'
+        self.target_system = system
+        self.sheet_current_row = 1
         self.finished = False
         self.elem_id = "GridView1"
         self.db_name = 'Gamelist.xlsx'
@@ -28,15 +28,18 @@ class Scrapie():
     def db_new_sheet(self):
         self.db.create_sheet(self.target_system)
 
-        self.sheet = self.db[self.target_system]
-        self.sheet.append([
-            '', 'Game', '', 'System', '',
-            'Publisher', '', 'Developer',
+        sheet = self.db[self.target_system]
+        sheet.append([
+            'Game', 'System',
+            'Publisher', 'Developer',
             'Category',	'Year',
         ])
+        self.sheet_current_row += 1
         self.db_save()
+        return sheet
 
     def db_save(self):
+        print("Saving..")
         try:
             self.db.save(self.db_name)
         except PermissionError as e:
@@ -48,6 +51,7 @@ class Scrapie():
         try:
             self.sheet = self.db[self.target_system]
         except KeyError as e:
+            print(e)
             self.sheet = self.db_new_sheet()
 
     def setup_browser_table(self):
@@ -86,21 +90,36 @@ class Scrapie():
 
     def aquire_cells(self, entries):
         for index_row, row in enumerate(entries[:-2]):
-            self.write_row_to_database(row, index_row)
+            self.write_row_to_database(row)
 
+        print("Page is done!")
         self.db_save()
 
-    def write_row_to_database(self, row, index_row):
-        cells = row.find_elements_by_tag_name('td')
+    def cell_contains_text(self, rawcell):
+        if rawcell.text != '':
+            return True
+        else:
+            return False
+
+    def write_row_to_database(self, row):
+        rawcell = row.find_elements_by_tag_name('td')
+
+        cells = filter(self.cell_contains_text, rawcell)
 
         for index_col, cell in enumerate(cells):
             # Row offset - due to header
             # Col offset - arrays start at 1 :^)
             _ = self.sheet.cell(
                 column=index_col+1,
-                row=index_row+2,
+                row=self.sheet_current_row,
                 value=cell.text
             )
+
+        print("Inserted in row {}: {}".format(
+            self.sheet_current_row,
+            row.text
+        ))
+        self.sheet_current_row += 1
 
     def scrape_all(self):
         self.aquire_table()
@@ -115,7 +134,6 @@ class Scrapie():
         self.scrape_all()
 
 
-
 if __name__ == "__main__":
-    scraper = Scrapie()
+    scraper = Scrapie('Apple II')
     scraper.run()
