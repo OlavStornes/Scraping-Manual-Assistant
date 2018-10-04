@@ -5,13 +5,14 @@ import os
 from openpyxl.styles import colors
 from openpyxl.styles import Font
 
-START_URL = 'http://www.gamesdatabase.org/Media/SYSTEM/Nintendo_SNES//Manual/formated/'
+START_URL = 'http://www.gamesdatabase.org/Media/SYSTEM/{0}//Manual/formated/'
+# Nintendo_SNES ---original name with underscore
 EXTENSION = '.pdf'
 
-COL_GAME = 'B'
-COL_PUB = 'F'
-COL_YEAR = 'J'
-COL_STATUS = 'K'
+COL_GAME = 'A'
+COL_PUB = 'C'
+COL_YEAR = 'F'
+COL_STATUS = 'G'
 
 
 ''' Whished format:
