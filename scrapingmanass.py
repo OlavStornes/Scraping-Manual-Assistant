@@ -39,27 +39,36 @@ class ArgHandler():
             for index, line in enumerate(f):
                 print(str(index) + ": \t" + line.replace(',', ''), end='')
 
+    def downloadmanual(self, args):
+        raise NotImplementedError
+
+    def scrapedatabase(self, args):
+        raise NotImplementedError
+
+    def scrape_download(self, args):
+
+        self.downloadmanual()
+        self.scrapedatabase()
 
     def main(self):
         self.handle_args()
 
         args = self.parser.parse_args()
 
-        if (args.download):
-            # Activate downloader.py
-            print(args)
-            raise NotImplementedError
-        elif (args.list):
+        if (args.list):
             # Show all systems
             self.showlist()
+        elif (args.download):
+            # Activate downloader.py
+            self.downloadmanual(args.path)
 
         elif (args.scrapedatabase):
             # Activate tablescraper.py
-            raise NotImplementedError
+            self.scrapedatabase(args.path)
 
         elif (args.both):
             # Do both
-            raise NotImplementedError
+            self.scrape_download(args.path)
 
         # Avoid starting a nonexistent handler
         else:
