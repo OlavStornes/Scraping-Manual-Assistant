@@ -3,8 +3,7 @@ import openpyxl
 import time
 import os
 from openpyxl.styles import colors
-from openpyxl.styles import Font, Color
-import re
+from openpyxl.styles import Font
 
 START_URL = 'http://www.gamesdatabase.org/Media/SYSTEM/Nintendo_SNES//Manual/formated/'
 EXTENSION = '.pdf'
@@ -22,7 +21,7 @@ Zombies_Ate_My_Neighbors_-_1993_-_Konami.pdf'''
 
 
 def sheet_writestatus(sheet, rowstr):
-    cell = sheet[COL_STATUS+rowstr] 
+    cell = sheet[COL_STATUS+rowstr]
     cell.font = Font(color=colors.BLUE)
     cell.value = "X"
 
@@ -30,8 +29,8 @@ def sheet_writestatus(sheet, rowstr):
 def save_database(wb):
     try:
         wb.save('Gamelist.xlsx')
-    except:
-        print ("error writing to database")
+    except PermissionError:
+        print("Error writing to database")
 
 
 def filealreadyexists(game_obj):
@@ -47,11 +46,13 @@ def sanitize_gamename(name):
 
     return name
 
+
 def sanitize_filename(name):
-    #Attemtpting to abide by windows' file standard
+    # Attemtpting to abide by windows' file standard
     for c in r'/\\?\;:>"<*^|':
-        name = name.replace(c,'')
+        name = name.replace(c, '')
     return name
+
 
 def parse_request_url(game, publisher, year):
     game_url = sanitize_gamename(game)
@@ -62,14 +63,13 @@ def parse_request_url(game, publisher, year):
     filename = game + name_postfix.replace('_', ' ')
     filename = sanitize_filename(filename)
 
-    
     request_url = START_URL + game_url + name_postfix
     tmp = {"name": filename, "url": request_url}
     return tmp
 
+
 def send_request(game_obj):
     response = requests.get(game_obj['url'], stream=True)
-
 
     if response.ok:
         with open(game_obj['name'], 'wb') as fd:
@@ -81,11 +81,13 @@ def send_request(game_obj):
         return 'COMPLETED'
 
     else:
-        errorstring = "Error downloading " + game_obj["name"] +  " at " + game_obj['url']
+        errorstring = "Error downloading " + \
+            game_obj["name"] + " at " + game_obj['url']
         print(errorstring)
         with open('error.log', 'a') as f:
             f.write(errorstring + '\n')
         return 'ERROR'
+
 
 def main():
     d_count = 0
@@ -96,21 +98,20 @@ def main():
     sheet_snes = wb['SNES']
     status = ''
 
-
     for row in range(2, sheet_snes.max_row):
         rowstr = str(row)
-        game =      sheet_snes[COL_GAME+rowstr].value
+        game = sheet_snes[COL_GAME+rowstr].value
         publisher = sheet_snes[COL_PUB+rowstr].value
-        year =      sheet_snes[COL_YEAR+rowstr].value
+        year = sheet_snes[COL_YEAR+rowstr].value
         game_obj = parse_request_url(game, publisher, year)
 
         if (filealreadyexists(game_obj)):
-            print("%s already exists - skipping" %(game_obj['name']))
+            print("%s already exists - skipping" % (game_obj['name']))
             status = 'SKIPPED'
             sheet_writestatus(sheet_snes, rowstr)
 
             s_count += 1
-            
+
             time.sleep(0.05)
 
         else:
@@ -134,6 +135,7 @@ def main():
     print("Downloaded: " + str(d_count))
     print("Errors: " + str(e_count))
     print("Skipped: " + str(s_count))
+
 
 if (__name__ == "__main__"):
     main()
