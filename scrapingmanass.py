@@ -79,7 +79,7 @@ class ArgHandler():
             self.showlist()
         elif (args.download):
             # Activate downloader.py
-            self.downloadmanual(args.path)
+            self.downloadmanual(args.download)
 
         elif (args.scrapedatabase):
             # Activate tablescraper.py
