@@ -33,7 +33,7 @@ class System(BaseModel):
 
 class Game(BaseModel):
     game = pw.CharField()
-    system = pw.ForeignKeyField(System, field='name')
+    system = pw.ForeignKeyField(System, field='sys_id')
     publisher = pw.CharField()
     developer = pw.CharField()
     category = pw.CharField()
