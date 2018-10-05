@@ -67,9 +67,16 @@ class Manualdownloader():
 
     def parse_request_url(self, game, publisher, year):
         game_url = self.sanitize_gamename(game)
-        publisher = publisher.replace(' ', '_').replace('&', '-')
 
-        name_postfix = '_-_' + str(year) + '_-_' + publisher + EXTENSION
+        publisher_input = '_-_' + publisher.replace(' ', '_').replace('&', '-')
+        if publisher_input == 'None':
+            publisher_input = ''
+
+        year_input = '_-_' + str(year)
+        if year == 0:
+            year_input = ''
+
+        name_postfix = '_-_' + year_input + '_-_' + publisher + EXTENSION
 
         filename = game + name_postfix.replace('_', ' ')
         filename = self.sanitize_filename(filename)
@@ -135,6 +142,3 @@ class Manualdownloader():
                     self.e_count += 1
                 elif status == 'DOWNLOADED':
                     self.d_count += 1
-
-            if row.id % 50 == 0:
-                self.save_database()
