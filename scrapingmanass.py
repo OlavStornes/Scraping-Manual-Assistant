@@ -1,11 +1,18 @@
 import sys
 import argparse
 import json
+import database as data
 import tablescraper as ts
 import downloader as dl
 
 
 class ArgHandler():
+    def __init__(self):
+        self.db = data.db
+        self.models = {
+            "System": data.System,
+            "Game": data.Game
+            }
 
     def handle_args(self):
 
@@ -37,34 +44,27 @@ class ArgHandler():
             type=str
         )
 
-    def load_data(self):
-        with open('systems.json') as f:
-            self.data = json.load(f)
 
     def showlist(self):
-        self.load_data()
-
-        for line in self.data:
-            print(line + "\t" + self.data[line])
+        for system in self.models['System'].select():
+            print(str(system.sys_id) + "\t" + system.name)
 
     def downloadmanual(self, args):
-        self.load_data()
+        query = data.System.select().where(data.System.sys_id.in_(args))
 
-        for x in args:
-            system = self.data[x]
-            mandownloader = dl.Manualdownloader(system)
+        for entry in query:
+
+            mandownloader = dl.Manualdownloader(entry, self.db, self.models['Game'])
             mandownloader.main()
 
     def scrapedatabase(self, args):
-        self.load_data()
+        query = data.System.select().where(data.System.sys_id.in_(args))
 
-        for x in args:
-            system = self.data[x]
-            scraper = ts.Scrapie(system)
+        for entry in query:
+            scraper = ts.Scrapie(entry, self.db, self.models['Game'])
             scraper.run()
 
     def scrape_and_download(self, args):
-        self.load_data()
 
         self.scrapedatabase(args)
         self.downloadmanual(args)
