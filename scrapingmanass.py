@@ -12,7 +12,7 @@ class ArgHandler():
         self.models = {
             "System": data.System,
             "Game": data.Game
-            }
+        }
 
     def handle_args(self):
 
@@ -44,7 +44,6 @@ class ArgHandler():
             type=str
         )
 
-
     def showlist(self):
         for system in self.models['System'].select():
             print(str(system.sys_id) + "\t" + system.name)
@@ -54,7 +53,8 @@ class ArgHandler():
 
         for entry in query:
 
-            mandownloader = dl.Manualdownloader(entry, self.db, self.models['Game'])
+            mandownloader = dl.Manualdownloader(
+                entry, self.db, self.models['Game'])
             mandownloader.main()
 
     def scrapedatabase(self, args):

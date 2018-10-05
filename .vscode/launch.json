@@ -5,11 +5,19 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Python: Real deal manscraper",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/scrapingmanass.py",
+            "args":["-d", "4"],
+            "console": "integratedTerminal"
+        },
+        {
             "name": "Python: Current File (Integrated Terminal)",
             "type": "python",
             "request": "launch",
             "program": "${file}",
-            "args":["-s", "4", "12"],
+            "args":["-d", "4"],
             "console": "integratedTerminal"
         },
         {

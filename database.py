@@ -1,0 +1,43 @@
+import peewee as pw
+import json
+
+
+def set_up_systems_database(db):
+    data = {}
+
+    with open('systems.json') as f:
+        data = json.load(f)
+
+    with db.atomic():
+        for key, value in data.items():
+            System.insert(sys_id=key, name=value)
+
+
+db = pw.SqliteDatabase('database.db')
+
+
+class BaseModel(pw.Model):
+    class Meta:
+        database = db
+
+
+class System(BaseModel):
+    sys_id = pw.IntegerField(primary_key=True)
+    name = pw.CharField()
+
+
+class Game(BaseModel):
+    game = pw.CharField()
+    system = pw.ForeignKeyField(System, field='name')
+    publisher = pw.CharField()
+    developer = pw.CharField()
+    category = pw.CharField()
+    year = pw.IntegerField()
+
+
+# set_up_systems_database(db)
+
+db.create_tables([Game, System])
+
+if (System.select().count() == 0):
+    set_up_systems_database(db)

@@ -1,9 +1,7 @@
 import requests
-import openpyxl
 import time
 import os
-from openpyxl.styles import colors
-from openpyxl.styles import Font
+
 
 START_URL = 'http://www.gamesdatabase.org/Media/SYSTEM/{0}//Manual/formated/'
 # Nintendo_SNES ---original name with underscore
@@ -22,11 +20,14 @@ Zombies_Ate_My_Neighbors_-_1993_-_Konami.pdf'''
 
 
 class Manualdownloader():
-    def __init__(self, target_system):
+    def __init__(self, entry, database, model):
+        self.db = database
+        self.m_game = model
         self.d_count = 0
         self.e_count = 0
         self.s_count = 0
-        self.system = target_system
+        self.system = entry.name
+        self.system_id = entry.sys_id
 
         self.prepare_url()
 
@@ -39,19 +40,7 @@ class Manualdownloader():
 
     def prepare_url(self):
         self.system_url = self.sanitize_system_url(self.system)
-
         self.start_url = START_URL.format(self.system_url)
-        
-    def sheet_writestatus(self, rowstr):
-        cell = self.sheet[COL_STATUS+rowstr]
-        cell.font = Font(color=colors.BLUE)
-        cell.value = "X"
-
-    def save_database(self):
-        try:
-            self.wb.save('Gamelist.xlsx')
-        except PermissionError:
-            print("Error writing to database")
 
     def filealreadyexists(self, filepath):
         return os.path.isfile(filepath)
@@ -110,7 +99,6 @@ class Manualdownloader():
             return 'ERROR'
 
     def cleanup(self):
-        self.save_database()
 
         print("Finished!")
         print("Downloaded: " + str(self.d_count))
@@ -119,22 +107,22 @@ class Manualdownloader():
 
     def main(self):
 
-        self.wb = openpyxl.load_workbook('Gamelist.xlsx')
-        self.sheet = self.wb[self.system]
         status = ''
 
-        for row in range(2, self.sheet.max_row):
-            rowstr = str(row)
-            game = self.sheet[COL_GAME+rowstr].value
-            year = self.sheet[COL_YEAR+rowstr].value
-            publisher = self.sheet[COL_PUB+rowstr].value
+        query = (self.m_game.select().where(
+            self.m_game.system_id == self.system_id))
+
+        # for row in self.models['Game'].
+        for row in query:
+            game = row.game
+            year = row.year
+            publisher = row.publisher
             game_obj = self.parse_request_url(game, publisher, year)
             self.filepath = self.newpath + game_obj['name']
 
             if (self.filealreadyexists(self.filepath)):
                 print("%s already exists - skipping" % (game_obj['name']))
                 status = 'SKIPPED'
-                self.sheet_writestatus(rowstr)
 
                 self.s_count += 1
 
@@ -146,16 +134,7 @@ class Manualdownloader():
                 if status == 'ERROR':
                     self.e_count += 1
                 elif status == 'DOWNLOADED':
-                    self.sheet_writestatus(rowstr)
                     self.d_count += 1
 
-            if row % 50 == 0:
+            if row.id % 50 == 0:
                 self.save_database()
-
-
-#########################################################
-
-
-if (__name__ == "__main__"):
-    x = Manualdownloader("Atari Lynx")
-    x.main()

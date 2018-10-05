@@ -73,7 +73,7 @@ class Scrapie():
                 "developer": x[2],
                 "category": x[3],
                 "year": x[4]
-                }
+            }
             # Check if exists
             q = self.m_game.select(self.m_game.game == y["game"])
             if not q.exists():
@@ -83,7 +83,7 @@ class Scrapie():
             for data_dict in data_source:
                 self.m_game.create(**data_dict)
 
-        print("Added {} rows to the table!".format(len(data_source))
+        print("Added {} rows to the table!".format(len(data_source)))
 
     def aquire_cells(self, entries):
         tmp = []
@@ -92,8 +92,6 @@ class Scrapie():
         print("Page is done!")
 
         self.save_page_to_table(tmp)
-
-
 
     def transform_to_row(self, row):
         rawcell = row.find_elements_by_tag_name('td')
@@ -106,7 +104,6 @@ class Scrapie():
             output.append(rawcell[cell].text)
 
         return output
-
 
     def scrape_all(self):
         self.aquire_table()
