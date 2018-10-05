@@ -1,6 +1,5 @@
 import openpyxl
-from openpyxl.styles import Font
-from openpyxl.styles.borders import Border, Side
+import database
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
@@ -10,13 +9,14 @@ from selenium.webdriver.support.ui import Select
 
 
 class Scrapie():
-    def __init__(self, system):
+    def __init__(self, entry, database, m_game):
         self.page_number = 1
-        self.target_system = system
-        self.sheet_current_row = 1
+        self.target_system = entry.name
+        self.target_id = entry.sys_id
+        self.db = database
+        self.m_game = m_game
         self.finished = False
         self.elem_id = "GridView1"
-        self.db_name = 'Gamelist.xlsx'
         self.system_dropid = "DropSys"
         self.url = "http://www.gamesdatabase.org/list.aspx?manual=1"
         self.js_script = "javascript:__doPostBack('" + \
@@ -26,61 +26,6 @@ class Scrapie():
     def init_browser(self):
         self.browser = webdriver.Chrome()
         self.browser.get(self.url)
-
-    def db_new_sheet(self):
-        self.db.create_sheet(self.target_system)
-
-        sheet = self.db[self.target_system]
-
-        # Spacing hack
-        headers = [
-            '______________________Game______________________',
-            '___System___',
-            '________Publisher________',
-            '_______Developer_______',
-            '__Category__',
-            '__Year__',
-        ]
-
-
-
-        # Styling
-        for index, header in enumerate(headers):
-
-            _ = sheet.cell(
-                column=index+1,
-                row=1,
-                value=header,
-            )
-            _.font = Font(bold=True, italic=True)
-            _.border = Border(bottom=Side(style='thick'))
-
-        # Column spacing
-        for col in sheet.columns:
-            column = col[0].column
-            length = len(col[0].value)
-
-            sheet.column_dimensions[column].width = length
-
-        self.sheet_current_row += 1
-        self.db_save()
-        return sheet
-
-    def db_save(self):
-        print("Saving..")
-        try:
-            self.db.save(self.db_name)
-        except PermissionError as e:
-            print(e)
-
-    def init_db(self):
-        self.db = openpyxl.load_workbook(self.db_name)
-
-        try:
-            self.sheet = self.db[self.target_system]
-        except KeyError as e:
-            print(e)
-            self.sheet = self.db_new_sheet()
 
     def setup_browser_table(self):
         selector = Select(self.browser.find_element_by_id(self.system_dropid))
@@ -116,38 +61,52 @@ class Scrapie():
         entries = self.table.find_elements_by_tag_name('tr')[3:]
         self.aquire_cells(entries)
 
+    def save_page_to_table(self, rows):
+
+        data_source = []
+
+        for x in rows:
+            y = {
+                "game": x[0],
+                "system": self.target_id,
+                "publisher": x[1],
+                "developer": x[2],
+                "category": x[3],
+                "year": x[4]
+                }
+            # Check if exists
+            q = self.m_game.select(self.m_game.game == y["game"])
+            if not q.exists():
+                data_source.append(y)
+
+        with self.db.atomic():
+            for data_dict in data_source:
+                self.m_game.create(**data_dict)
+
+        print("Added {} rows to the table!".format(len(data_source))
+
     def aquire_cells(self, entries):
-        for index_row, row in enumerate(entries[:-2]):
-            self.write_row_to_database(row)
-
+        tmp = []
+        for row in entries[:-2]:
+            tmp.append(self.transform_to_row(row))
         print("Page is done!")
-        self.db_save()
 
-    def cell_contains_text(self, rawcell):
-        if rawcell.text != '':
-            return True
-        else:
-            return False
+        self.save_page_to_table(tmp)
 
-    def write_row_to_database(self, row):
+
+
+    def transform_to_row(self, row):
         rawcell = row.find_elements_by_tag_name('td')
+        # Only extract relevant bois
+        cell_pos = [1, 5, 7, 8, 9]
 
-        cells = filter(self.cell_contains_text, rawcell)
+        output = []
 
-        for index_col, cell in enumerate(cells):
-            # Row offset - due to header
-            # Col offset - arrays start at 1 :^)
-            _ = self.sheet.cell(
-                column=index_col+1,
-                row=self.sheet_current_row,
-                value=cell.text
-            )
+        for cell in cell_pos:
+            output.append(rawcell[cell].text)
 
-        print("Inserted in row {}: {}".format(
-            self.sheet_current_row,
-            row.text
-        ))
-        self.sheet_current_row += 1
+        return output
+
 
     def scrape_all(self):
         self.aquire_table()
@@ -156,9 +115,8 @@ class Scrapie():
             self.iterate_pages()
 
     def cleanup(self):
-        print("Finished with sheet {}. {} rows written".format(
+        print("Finished with system {}.".format(
             self.target_system,
-            self.sheet_current_row
         ))
         self.browser.stop_client()
         self.browser.quit()
@@ -166,7 +124,6 @@ class Scrapie():
     def run(self):
         self.init_browser()
         self.setup_browser_table()
-        self.init_db()
         self.scrape_all()
 
         self.cleanup()
