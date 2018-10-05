@@ -72,22 +72,21 @@ class Scrapie():
                 "category": x[3],
                 "year": x[4]
             }
-            # Check if exists
-            q = self.m_game.select(self.m_game.game == y["game"])
-            if not q.exists():
+            try:
+                q = self.m_game.get(self.m_game.game == y["game"])
+            except Exception as e:
                 data_source.append(y)
 
         with self.db.atomic():
             for data_dict in data_source:
                 self.m_game.create(**data_dict)
 
-        print("Added {} rows to the table!".format(len(data_source)))
+        print("Done! Added {} rows to the table!".format(len(data_source)))
 
     def aquire_cells(self, entries):
         tmp = []
         for row in entries[:-2]:
             tmp.append(self.transform_to_row(row))
-        print("Page is done!")
 
         self.save_page_to_table(tmp)
 
