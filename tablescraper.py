@@ -70,7 +70,7 @@ class Scrapie():
                 "publisher": x[1],
                 "developer": x[2],
                 "category": x[3],
-                "year": x[4]
+                "year": x[4] or 0
             }
             try:
                 q = self.m_game.get(self.m_game.game == y["game"])
