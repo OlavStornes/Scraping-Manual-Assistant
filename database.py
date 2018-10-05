@@ -3,6 +3,9 @@ import json
 
 
 def set_up_systems_database(db):
+    print("System database empty!")
+    print("Creating system table...")
+
     data = {}
 
     with open('systems.json') as f:
@@ -10,7 +13,9 @@ def set_up_systems_database(db):
 
     with db.atomic():
         for key, value in data.items():
-            System.insert(sys_id=key, name=value)
+            System.create(sys_id=key, name=value)
+        
+    print("Done! Created {} entries".format(System.select().count()))
 
 
 db = pw.SqliteDatabase('database.db')
