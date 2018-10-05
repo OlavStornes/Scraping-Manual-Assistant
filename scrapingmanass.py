@@ -1,6 +1,5 @@
 import sys
 import argparse
-import json
 import database as data
 import tablescraper as ts
 import downloader as dl
