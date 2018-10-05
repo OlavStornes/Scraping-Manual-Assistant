@@ -66,9 +66,8 @@ class ArgHandler():
     def scrape_and_download(self, args):
         self.load_data()
 
-
-        self.downloadmanual()
-        self.scrapedatabase()
+        self.scrapedatabase(args)
+        self.downloadmanual(args)
 
     def main(self):
         self.handle_args()
