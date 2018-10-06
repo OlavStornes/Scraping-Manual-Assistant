@@ -108,7 +108,9 @@ class ArgHandler():
             if '-' in argument:
                 x = argument.split('-')
                 start, stop = int(x[0]), int(x[1])
-                unpacked_args.extend (range(start, stop+1))
+                unpacked_args.extend(range(start, stop+1))
+            else:
+                unpacked_args.append(argument)
         return unpacked_args
 
     def main(self):
