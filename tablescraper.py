@@ -100,6 +100,11 @@ class Scrapie():
                 self.m_game.create(**data_dict)
 
         cprint("Done! Added {} rows to the table!".format(len(data_source)), 'green')
+        
+        # Print how many rows was skipped
+        skipped = len(rows) - len(data_source)
+        if skipped:
+            cprint("\t {} entries already existing in database".format(skipped), 'cyan')
 
     def aquire_cells(self, entries):
         tmp = []
