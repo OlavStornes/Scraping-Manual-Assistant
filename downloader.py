@@ -42,7 +42,8 @@ class Manualdownloader():
         self.start_url = START_URL.format(self.system_url)
 
     def filealreadyexists(self, filepath):
-        return os.path.isfile(filepath)
+        dirty_hack = filepath.replace('.pdf', '.htm')
+        return os.path.isfile(filepath) or os.path.isfile(dirty_hack)
 
     def sanitize_system_url(self, name):
         for c in r"\":\&/ ":
