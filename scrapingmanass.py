@@ -101,9 +101,20 @@ class ArgHandler():
 
             if proceed != 'y':
                 sys.exit(1)
+        
+    def unpack_ranges(self, args):
+        unpacked_args = []
+        for argument in args:
+            if '-' in argument:
+                x = argument.split('-')
+                start, stop = int(x[0]), int(x[1])
+                unpacked_args.extend (range(start, stop+1))
+        return unpacked_args
 
     def main(self):
         self.handle_args()
+
+        cprint("\nWelcome to the Scraping Manual Assistant!\n", 'green')
 
         args = self.parser.parse_args()
 
@@ -114,15 +125,18 @@ class ArgHandler():
             self.showlist()
         elif (args.download):
             # Activate downloader.py
-            self.downloadmanual(args.download, skip_confirmation)
+            args_input = self.unpack_ranges(args.download)
+            self.downloadmanual(args_input, skip_confirmation)
 
         elif (args.scrapedatabase):
             # Activate tablescraper.py
-            self.scrapedatabase(args.scrapedatabase, skip_confirmation)
+            args_input = self.unpack_ranges(args.scrapedatabase)
+            self.scrapedatabase(args_input, skip_confirmation)
 
         elif (args.both):
             # Do both
-            self.scrape_and_download(args.both, skip_confirmation)
+            args_input = self.unpack_ranges(args.both)
+            self.scrape_and_download(args_input, skip_confirmation)
 
         # Avoid starting a nonexistent handler
         else:
