@@ -2,6 +2,7 @@ import requests
 import time
 import os
 from termcolor import colored, cprint
+from datetime import datetime
 
 
 
@@ -93,13 +94,18 @@ class Manualdownloader():
                 for chunk in response.iter_content(chunk_size=1024):
                     fd.write(chunk)
 
-            cprint("{} - Downloaded ".format(self.filepath), 'green')
+            cprint("{} - Done => {}  ".format(
+                datetime.now().isoformat(' ', 'seconds'),
+                self.filepath), 'green')
             time.sleep(2)
             return 'COMPLETED'
 
         else:
-            errorstring = "Error downloading " + \
-                game_obj["name"] + " at " + game_obj['url']
+            errorstring = "{} - Error => \n Filepath: {}\n URL: {}".format(
+                datetime.now().isoformat(' ', 'seconds'),
+                game_obj["name"],
+                game_obj['url']
+                )
             cprint(errorstring, 'red')
             with open('error.log', 'a') as f:
                 f.write(errorstring + '\n')
@@ -128,7 +134,10 @@ class Manualdownloader():
             self.filepath = self.newpath + game_obj['name']
 
             if (self.filealreadyexists(self.filepath)):
-                cprint("{} already exists - skipping".format((self.filepath)), 'cyan')
+                cprint("{} - Skip => {}".format(
+                    datetime.now().isoformat(' ', 'seconds'),
+                    self.filepath)
+                    , 'cyan')
                 status = 'SKIPPED'
 
                 self.s_count += 1

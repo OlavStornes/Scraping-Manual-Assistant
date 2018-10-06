@@ -5,6 +5,7 @@ from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import Select
 from termcolor import colored, cprint
+from datetime import datetime
 
 
 
@@ -51,7 +52,9 @@ class Scrapie():
         try:
             self.table = WebDriverWait(self.browser, delay).until(
                 EC.presence_of_element_located((By.ID, self.elem_id)))
-            print("Page is ready!")
+            print("{} - Page is ready!".format(
+                datetime.now().isoformat(' ', 'seconds'))
+                )
         except TimeoutException:
             print("Loading took too much time! Is it the last page?")
             if '404' in self.browser.title:
