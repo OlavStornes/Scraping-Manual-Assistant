@@ -9,7 +9,7 @@
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/scrapingmanass.py",
-            "args":["-s", "2"],
+            "args":["-y", "-s", "10"],
             "console": "integratedTerminal"
         },
         {

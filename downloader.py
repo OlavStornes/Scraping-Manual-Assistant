@@ -1,16 +1,14 @@
 import requests
 import time
 import os
+from termcolor import colored, cprint
+
 
 
 START_URL = 'http://www.gamesdatabase.org/Media/SYSTEM/{0}//Manual/formated/'
 # Nintendo_SNES ---original name with underscore
 EXTENSION = '.pdf'
 
-COL_GAME = 'A'
-COL_PUB = 'C'
-COL_YEAR = 'F'
-COL_STATUS = 'G'
 
 
 ''' Whished format:
@@ -95,14 +93,14 @@ class Manualdownloader():
                 for chunk in response.iter_content(chunk_size=1024):
                     fd.write(chunk)
 
-            print("Downloaded " + game_obj['name'])
-            time.sleep(5)
+            cprint("{} - Downloaded ".format(self.filepath), 'green')
+            time.sleep(2)
             return 'COMPLETED'
 
         else:
             errorstring = "Error downloading " + \
                 game_obj["name"] + " at " + game_obj['url']
-            print(errorstring)
+            cprint(errorstring, 'red')
             with open('error.log', 'a') as f:
                 f.write(errorstring + '\n')
             return 'ERROR'
@@ -130,7 +128,7 @@ class Manualdownloader():
             self.filepath = self.newpath + game_obj['name']
 
             if (self.filealreadyexists(self.filepath)):
-                print("%s already exists - skipping" % (game_obj['name']))
+                cprint("{} already exists - skipping".format((self.filepath)), 'cyan')
                 status = 'SKIPPED'
 
                 self.s_count += 1

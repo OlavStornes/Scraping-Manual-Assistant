@@ -4,6 +4,8 @@ from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import Select
+from termcolor import colored, cprint
+
 
 
 class Scrapie():
@@ -63,9 +65,12 @@ class Scrapie():
         # Filter out pages and header
         for entry in entries:
             # System name is in the 2nd cell with tag 'a'
-            system_cell = entry.find_elements_by_tag_name('a')[2]
-            if system_cell.text == self.target_system:
-                filtered_entries.append(entry)
+            try:
+                system_cell = entry.find_elements_by_tag_name('a')[2]
+                if system_cell.text == self.target_system:
+                    filtered_entries.append(entry)
+            except IndexError:
+                pass
 
         self.aquire_cells(filtered_entries)
 
@@ -91,7 +96,7 @@ class Scrapie():
             for data_dict in data_source:
                 self.m_game.create(**data_dict)
 
-        print("Done! Added {} rows to the table!".format(len(data_source)))
+        cprint("Done! Added {} rows to the table!".format(len(data_source)), 'green')
 
     def aquire_cells(self, entries):
         tmp = []
@@ -119,9 +124,9 @@ class Scrapie():
             self.iterate_pages()
 
     def cleanup(self):
-        print("Finished with system {}.".format(
+        cprint("Finished with system {}.".format(
             self.target_system,
-        ))
+        ), 'green')
         self.browser.stop_client()
         self.browser.quit()
 

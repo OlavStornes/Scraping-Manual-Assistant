@@ -3,6 +3,8 @@ import argparse
 import database as data
 import tablescraper as ts
 import downloader as dl
+import colorama
+from termcolor import colored, cprint
 
 
 class ArgHandler():
@@ -12,6 +14,8 @@ class ArgHandler():
             "System": data.System,
             "Game": data.Game
         }
+        colorama.init()
+
 
     def handle_args(self):
 
@@ -87,7 +91,7 @@ class ArgHandler():
     def confirm_action(self, args, confirm_string, skip_confirmation):
         if not skip_confirmation:
             print("You are currently attempting the following:")
-            print(confirm_string + "\n")
+            cprint(confirm_string + "\n", 'red')
 
             # query = data.System.select().where(data.System.sys_id.in_(args))
             for entry in args:
@@ -95,7 +99,7 @@ class ArgHandler():
 
             proceed = input("Do you wish to proceed? y/n: > ")
 
-            if not proceed != 'y':
+            if proceed != 'y':
                 sys.exit(1)
 
     def main(self):
