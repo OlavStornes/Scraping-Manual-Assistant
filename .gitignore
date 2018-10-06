@@ -110,3 +110,4 @@ chromedriver.exe
 Gamelist.xlsx
 data/*
 *.db
+.vscode/*
