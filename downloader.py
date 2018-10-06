@@ -50,7 +50,7 @@ class Manualdownloader():
             name = name.replace(c, '_')
         return name
 
-    def sanitize_gamename(self, name):
+    def sanitize_request_url(self, name):
         for c in r"'?\":\&*/":
             name = name.replace(c, '-')
 
@@ -66,17 +66,19 @@ class Manualdownloader():
         return name
 
     def parse_request_url(self, game, publisher, year):
-        game_url = self.sanitize_gamename(game)
+        game_url = self.sanitize_request_url(game)
 
-        publisher_input = '_-_' + publisher.replace(' ', '_').replace('&', '-')
-        if publisher_input == 'None':
+        if publisher == 'None':
             publisher_input = ''
+        else:
+            publisher_input = '_-_' + self.sanitize_request_url(publisher)
 
-        year_input = '_-_' + str(year)
         if year == 0:
             year_input = ''
+        else:
+            year_input = '_-_' + str(year)
 
-        name_postfix = '_-_' + year_input + '_-_' + publisher + EXTENSION
+        name_postfix = year_input + publisher_input + EXTENSION
 
         filename = game + name_postfix.replace('_', ' ')
         filename = self.sanitize_filename(filename)
