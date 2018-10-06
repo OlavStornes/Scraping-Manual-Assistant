@@ -42,13 +42,21 @@ class ArgHandler():
             nargs='+',
             type=str
         )
+        self.parser.add_argument(
+            "-y", "--yes",
+            help="Ignore the confirmation on the start",
+            action="store_true"
+        )
 
     def showlist(self):
         for system in self.models['System'].select():
             print(str(system.sys_id) + "\t" + system.name)
 
-    def downloadmanual(self, args):
+    def downloadmanual(self, args, skip_confirmation):
         query = data.System.select().where(data.System.sys_id.in_(args))
+
+        confirm_string = 'Download the database for one or multiple systems'
+        self.confirm_action(query, confirm_string, skip_confirmation)
 
         for entry in query:
 
@@ -56,37 +64,61 @@ class ArgHandler():
                 entry, self.db, self.models['Game'])
             mandownloader.main()
 
-    def scrapedatabase(self, args):
+    def scrapedatabase(self, args, skip_confirmation):
         query = data.System.select().where(data.System.sys_id.in_(args))
+
+        confirm_string = 'Scrape game info from the website'
+        self.confirm_action(query, confirm_string, skip_confirmation)
 
         for entry in query:
             scraper = ts.Scrapie(entry, self.db, self.models['Game'])
             scraper.run()
 
-    def scrape_and_download(self, args):
+    def scrape_and_download(self, args, skip_confirmation):
+        query = data.System.select().where(data.System.sys_id.in_(args))
 
-        self.scrapedatabase(args)
-        self.downloadmanual(args)
+        confirm_string = 'Download both the database and scrape the \
+                        manual for one or multiple systems"'
+        self.confirm_action(query, confirm_string, skip_confirmation)
+
+        self.scrapedatabase(args, True)
+        self.downloadmanual(args, True)
+
+    def confirm_action(self, args, confirm_string, skip_confirmation):
+        if not skip_confirmation:
+            print("You are currently attempting the following:")
+            print(confirm_string + "\n")
+
+            # query = data.System.select().where(data.System.sys_id.in_(args))
+            for entry in args:
+                print(entry.name)
+
+            proceed = input("Do you wish to proceed? y/n: > ")
+
+            if not proceed != 'y':
+                sys.exit(1)
 
     def main(self):
         self.handle_args()
 
         args = self.parser.parse_args()
 
+        skip_confirmation = args.yes
+
         if (args.list):
             # Show all systems
             self.showlist()
         elif (args.download):
             # Activate downloader.py
-            self.downloadmanual(args.download)
+            self.downloadmanual(args.download, skip_confirmation)
 
         elif (args.scrapedatabase):
             # Activate tablescraper.py
-            self.scrapedatabase(args.scrapedatabase)
+            self.scrapedatabase(args.scrapedatabase, skip_confirmation)
 
         elif (args.both):
             # Do both
-            self.scrape_and_download()
+            self.scrape_and_download(args.both, skip_confirmation)
 
         # Avoid starting a nonexistent handler
         else:
