@@ -56,8 +56,18 @@ class Scrapie():
                 self.finished = True
 
     def aquire_entries(self):
-        entries = self.table.find_elements_by_tag_name('tr')[3:]
-        self.aquire_cells(entries)
+        entries = self.table.find_elements_by_tag_name('tr')
+
+        filtered_entries = []
+
+        # Filter out pages and header
+        for entry in entries:
+            # System name is in the 2nd cell with tag 'a'
+            system_cell = entry.find_elements_by_tag_name('a')[2]
+            if system_cell.text == self.target_system:
+                filtered_entries.append(entry)
+
+        self.aquire_cells(filtered_entries)
 
     def save_page_to_table(self, rows):
 
@@ -85,7 +95,7 @@ class Scrapie():
 
     def aquire_cells(self, entries):
         tmp = []
-        for row in entries[:-2]:
+        for row in entries:
             tmp.append(self.transform_to_row(row))
 
         self.save_page_to_table(tmp)
@@ -121,8 +131,3 @@ class Scrapie():
         self.scrape_all()
 
         self.cleanup()
-
-
-if __name__ == "__main__":
-    scraper = Scrapie('Amstrad CPC')
-    scraper.run()
