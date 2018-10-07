@@ -102,13 +102,12 @@ class Manualdownloader():
         return x
 
     def write_manual(self, response, path):
+        cprint("{} -".format(datetime.now().isoformat(' ', 'seconds')), end='', color='green')
         with open(path, 'wb') as fd:
             for chunk in response.iter_content(chunk_size=1024):
                 fd.write(chunk)
 
-        cprint("{} - Done => {}  ".format(
-            datetime.now().isoformat(' ', 'seconds'),
-            path), 'green')
+        cprint(" Done => {}  ".format(path), 'green')
         self.d_count += 1
         time.sleep(2)
 
