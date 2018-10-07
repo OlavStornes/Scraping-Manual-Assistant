@@ -23,6 +23,8 @@ def href_create_game_obj(href, url):
     }
 
 def sanitize_to_find_href(name):
+    name = name.replace('&', 'and')
+    
     for c in r"'+\\/:":
         name = name.replace(c, '')
 
