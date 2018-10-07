@@ -109,6 +109,7 @@ class Manualdownloader():
         cprint("{} - Done => {}  ".format(
             datetime.now().isoformat(' ', 'seconds'),
             path), 'green')
+        self.d_count += 1
         time.sleep(2)
 
     def workaround_attempt(self, game):
@@ -126,7 +127,6 @@ class Manualdownloader():
 
         if response.ok:
             self.write_manual(response, self.filepath)
-            return 'COMPLETED'
 
         else:
             # Attempt to go through manually first. Longer to process, but increase hits
@@ -134,8 +134,8 @@ class Manualdownloader():
             response, attempted_url = self.workaround_attempt(game_obj['originaltitle'])
             if response:
                 self.write_manual(response, self.filepath)
-                return 'COMPLETED'
             else:
+                self.e_count += 1
                 errorstring = "{} - Error => \n Filepath: {}\n 1st URL: {} \n 2nd URL: {}".format(
                     datetime.now().isoformat(' ', 'seconds'),
                     game_obj["name"],
@@ -143,16 +143,21 @@ class Manualdownloader():
                     attempted_url
                     )
                 cprint(errorstring, 'red')
+
                 with open('error.log', 'a') as f:
                     f.write(errorstring + '\n')
-                return 'ERROR'
 
     def cleanup(self):
 
-        print("Finished!")
-        print("Downloaded: " + str(self.d_count))
-        print("Errors: " + str(self.e_count))
-        print("Skipped: " + str(self.s_count))
+        print("Finished downloading for {}!".format(self.system))
+        
+    def get_report(self):
+        return {
+            'System' : self.system,
+            'Downloaded': self.d_count,
+            'Errors': self.e_count,
+            'Skipped': self.s_count
+        }
 
     def main(self):
 
@@ -181,10 +186,7 @@ class Manualdownloader():
                 time.sleep(0.05)
 
             else:
-                status = self.attempt_download(game_obj)
+                self.attempt_download(game_obj)
                 time.sleep(3)
-                if status == 'ERROR':
-                    self.e_count += 1
-                elif status == 'DOWNLOADED':
-                    self.d_count += 1
+
         self.cleanup()

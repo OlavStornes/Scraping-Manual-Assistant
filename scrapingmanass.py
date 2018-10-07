@@ -57,8 +57,36 @@ class ArgHandler():
         for system in self.models['System'].select():
             print(str(system.sys_id) + "\t" + system.name)
 
+
+    def show_results(self, report_list):
+        print('\n\nTargeted systems report:')
+
+        total_downloaded = 0
+        total_skipped = 0
+        total_errors = 0
+
+
+        for report in report_list:
+            print('System: ' + report['System'])
+            cprint('\tDownloaded:\t' + str(report['Downloaded']), 'green')
+            cprint('\tSkipped:\t' + str(report['Skipped']), 'cyan')
+            cprint('\tErrors: \t' + str(report['Errors']), 'red')
+            total_downloaded += report['Downloaded']
+            total_skipped += report['Skipped']
+            total_errors += report['Errors']
+            
+        if len(report_list) > 1:
+            print("\n\n") 
+            cprint('Total downloads:\t' + str(total_downloaded), 'green')
+            cprint('Total skipped:\t\t' + str(total_skipped), 'cyan')
+            cprint('Total errors:\t\t' + str(total_errors), 'red')
+            
+
+
     def downloadmanual(self, args, skip_confirmation):
         query = data.System.select().where(data.System.sys_id.in_(args))
+        report_list = []
+
 
         confirm_string = 'Download the database for one or multiple systems'
         self.confirm_action(query, confirm_string, skip_confirmation)
@@ -68,7 +96,12 @@ class ArgHandler():
             mandownloader = dl.Manualdownloader(
                 entry, self.db, self.models['Game'])
             mandownloader.main()
+            report_list.append(mandownloader.get_report())
             time.sleep(3)
+
+        # Finished with all downloading
+        self.show_results(report_list)
+
 
     def scrapedatabase(self, args, skip_confirmation):
         query = data.System.select().where(data.System.sys_id.in_(args))
