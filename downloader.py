@@ -116,6 +116,7 @@ class Manualdownloader():
         if newurl_obj['name']:
             newurl_obj['name'] = self.newpath + newurl_obj['name'].replace('_', ' ')
             response = self.send_request(newurl_obj['url'])
+            self.filepath = newurl_obj['name']
 
             return response, newurl_obj
         else:
