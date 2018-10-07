@@ -79,6 +79,7 @@ class ArgHandler():
         for entry in query:
             scraper = ts.Scrapie(entry, self.db, self.models['Game'])
             scraper.run()
+            time.sleep(3)
 
     def scrape_and_download(self, args, skip_confirmation):
         query = data.System.select().where(data.System.sys_id.in_(args))
