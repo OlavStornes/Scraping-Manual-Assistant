@@ -1,8 +1,9 @@
 import requests
 import time
-import os
+import os, glob
 from termcolor import colored, cprint
 from datetime import datetime
+import sloppyseconds as ss
 
 
 
@@ -41,9 +42,18 @@ class Manualdownloader():
         self.system_url = self.sanitize_system_url(self.system)
         self.start_url = START_URL.format(self.system_url)
 
-    def filealreadyexists(self, filepath):
-        dirty_hack = filepath.replace('.pdf', '.htm')
-        return os.path.isfile(filepath) or os.path.isfile(dirty_hack)
+    def filealreadyexists(self, filepath, basename):
+        x = os.path.isfile(filepath)
+        if x:
+            return True
+        else:
+            sane_name= self.sanitize_filename(basename)
+            y = glob.glob(self.newpath + sane_name+ "*")
+            if y:
+                self.filepath = y[0]
+                return True
+        
+        return False
 
     def sanitize_system_url(self, name):
         for c in r"\":\&/ ":
@@ -84,33 +94,58 @@ class Manualdownloader():
         filename = self.sanitize_filename(filename)
 
         request_url = self.start_url + game_url + name_postfix
-        tmp = {"name": filename, "url": request_url}
+        tmp = {"name": filename, "url": request_url, 'originaltitle': game}
         return tmp
 
-    def send_request(self, game_obj):
-        response = requests.get(game_obj['url'], stream=True)
+    def send_request(self, url):
+        x = requests.get(url, stream=True)
+        return x
+
+    def write_manual(self, response, path):
+        with open(path, 'wb') as fd:
+            for chunk in response.iter_content(chunk_size=1024):
+                fd.write(chunk)
+
+        cprint("{} - Done => {}  ".format(
+            datetime.now().isoformat(' ', 'seconds'),
+            path), 'green')
+        time.sleep(2)
+
+    def workaround_attempt(self, game):
+        newurl_obj = ss.href_find_link_by_name(self.system, game)
+        if newurl_obj['name']:
+            newurl_obj['name'] = self.newpath + newurl_obj['name'].replace('_', ' ')
+            response = self.send_request(newurl_obj['url'])
+
+            return response, newurl_obj
+        else:
+            return None, newurl_obj['url']
+
+    def attempt_download(self, game_obj):
+        response = self.send_request(game_obj['url'])
 
         if response.ok:
-            with open(self.filepath, 'wb') as fd:
-                for chunk in response.iter_content(chunk_size=1024):
-                    fd.write(chunk)
-
-            cprint("{} - Done => {}  ".format(
-                datetime.now().isoformat(' ', 'seconds'),
-                self.filepath), 'green')
-            time.sleep(2)
+            self.write_manual(response, self.filepath)
             return 'COMPLETED'
 
         else:
-            errorstring = "{} - Error => \n Filepath: {}\n URL: {}".format(
-                datetime.now().isoformat(' ', 'seconds'),
-                game_obj["name"],
-                game_obj['url']
-                )
-            cprint(errorstring, 'red')
-            with open('error.log', 'a') as f:
-                f.write(errorstring + '\n')
-            return 'ERROR'
+            # Attempt to go through manually first. Longer to process, but increase hits
+            cprint("First attempt failed, trying a workaround...", 'yellow')
+            response, attempted_url = self.workaround_attempt(game_obj['originaltitle'])
+            if response:
+                self.write_manual(response, self.filepath)
+                return 'COMPLETED'
+            else:
+                errorstring = "{} - Error => \n Filepath: {}\n 1st URL: {} \n 2nd URL: {}".format(
+                    datetime.now().isoformat(' ', 'seconds'),
+                    game_obj["name"],
+                    game_obj['url'],
+                    attempted_url
+                    )
+                cprint(errorstring, 'red')
+                with open('error.log', 'a') as f:
+                    f.write(errorstring + '\n')
+                return 'ERROR'
 
     def cleanup(self):
 
@@ -134,7 +169,7 @@ class Manualdownloader():
             game_obj = self.parse_request_url(game, publisher, year)
             self.filepath = self.newpath + game_obj['name']
 
-            if (self.filealreadyexists(self.filepath)):
+            if (self.filealreadyexists(self.filepath, game)):
                 cprint("{} - Skip => {}".format(
                     datetime.now().isoformat(' ', 'seconds'),
                     self.filepath)
@@ -146,9 +181,10 @@ class Manualdownloader():
                 time.sleep(0.05)
 
             else:
-                status = self.send_request(game_obj)
+                status = self.attempt_download(game_obj)
                 time.sleep(3)
                 if status == 'ERROR':
                     self.e_count += 1
                 elif status == 'DOWNLOADED':
                     self.d_count += 1
+        self.cleanup()
