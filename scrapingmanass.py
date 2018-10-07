@@ -1,5 +1,6 @@
 import sys
 import argparse
+import time
 import database as data
 import tablescraper as ts
 import downloader as dl
@@ -67,6 +68,7 @@ class ArgHandler():
             mandownloader = dl.Manualdownloader(
                 entry, self.db, self.models['Game'])
             mandownloader.main()
+            time.sleep(3)
 
     def scrapedatabase(self, args, skip_confirmation):
         query = data.System.select().where(data.System.sys_id.in_(args))
