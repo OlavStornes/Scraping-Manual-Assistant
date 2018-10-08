@@ -8,7 +8,6 @@ from termcolor import colored, cprint
 from datetime import datetime
 
 
-
 class Scrapie():
     def __init__(self, entry, database, m_game):
         self.page_number = 1
@@ -37,7 +36,6 @@ class Scrapie():
             self.table = WebDriverWait(self.browser, delay).until(
                 EC.presence_of_element_located((By.ID, self.elem_id)))
         except TimeoutException:
-            print("Loading took too much time! Is it the last page?")
             if '404' in self.browser.title:
                 self.finished = True
 
@@ -54,9 +52,8 @@ class Scrapie():
                 EC.presence_of_element_located((By.ID, self.elem_id)))
             print("{} - Page is ready!".format(
                 datetime.now().isoformat(' ', 'seconds'))
-                )
+            )
         except TimeoutException:
-            print("Loading took too much time! Is it the last page?")
             if '404' in self.browser.title:
                 self.finished = True
 
@@ -99,12 +96,14 @@ class Scrapie():
             for data_dict in data_source:
                 self.m_game.create(**data_dict)
 
-        cprint("Done! Added {} rows to the table!".format(len(data_source)), 'green')
-        
+        cprint("Done! Added {} rows to the table!".format(
+            len(data_source)), 'green')
+
         # Print how many rows was skipped
         skipped = len(rows) - len(data_source)
         if skipped:
-            cprint("\t {} entries already existing in database".format(skipped), 'cyan')
+            cprint("\t {} entries already existing in database".format(
+                skipped), 'cyan')
 
     def aquire_cells(self, entries):
         tmp = []
@@ -131,6 +130,14 @@ class Scrapie():
             self.aquire_entries()
             self.iterate_pages()
 
+    def have_all_entries(self):
+        n = self.m_game.select().where(self.m_game.system_id == self.target_id).count()
+        cprint("Already exists {} entries in base".format(str(n)), 'yellow')
+        onsite = self.browser.find_element_by_id('Out')
+        number = int(onsite.text.split(' ')[0].replace(',', ''))
+
+        return (n >= number)
+
     def cleanup(self):
         cprint("Finished with system {}.".format(
             self.target_system,
@@ -141,6 +148,7 @@ class Scrapie():
     def run(self):
         self.init_browser()
         self.setup_browser_table()
-        self.scrape_all()
+        if not self.have_all_entries():
+            self.scrape_all()
 
         self.cleanup()
