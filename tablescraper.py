@@ -76,31 +76,26 @@ class Scrapie():
 
     def save_page_to_table(self, rows):
 
-        data_source = []
+        create_count = 0
 
         for x in rows:
-            y = {
-                "game": x[0],
-                "system": self.target_id,
-                "publisher": x[1],
-                "developer": x[2],
-                "category": x[3],
-                "year": x[4] or 0
-            }
-            try:
-                q = self.m_game.get(self.m_game.game == y["game"])
-            except Exception as e:
-                data_source.append(y)
+            game, created = self.m_game.get_or_create(
+                game=x[0],
+                system_id=self.target_id,
+                publisher=x[1],
+                developer=x[2],
+                category=x[3],
+                year=x[4] or 0
+            )
 
-        with self.db.atomic():
-            for data_dict in data_source:
-                self.m_game.create(**data_dict)
+            if created:
+                create_count += 1
 
         cprint("Done! Added {} rows to the table!".format(
-            len(data_source)), 'green')
+            create_count), 'green')
 
         # Print how many rows was skipped
-        skipped = len(rows) - len(data_source)
+        skipped = len(rows) - create_count
         if skipped:
             cprint("\t {} entries already existing in database".format(
                 skipped), 'cyan')
