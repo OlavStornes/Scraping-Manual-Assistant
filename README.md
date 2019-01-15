@@ -23,13 +23,19 @@ The other part is the manual-downloader. With the records made in the first modu
 ## Arguments
 The options -s, -d and -b accepts an arbitrary amount of numbers, so for instance, if you want to scrape several systems, just add the system ID (given from either watching `systems.json` or launching the script with `-l`)
 
+ScrapingManAss also supports dashes between numbers as a range selector (`x-y`) 
+
 ### Example:
 
 * `python ./scrapingmanass.py -l` -> Show all the systems with their id's
-* `python ./scrapingmanass.py -s 1 2 3 4 5` -> Populate the database with entries from systems 1 to 5  
+* `python ./scrapingmanass.py -s 1 2 3 4 5` -> Populate the database with entries from systems 1 to 5 
+*  `python ./scrapingmanass.py -b 1-25` -> Populate the database AND download the manuals from systems 1 to 25
 
 # Requirements
 The packages used in this project is mentioned in `requirements.txt`.
+
+* [`Selenium`](https://www.seleniumhq.org/) is needed to scrape the webpages.
+* `Sqlite3` for the database  
 
 ## Apply all packages for easy start:
 ```pip install -r requirements.txt```
